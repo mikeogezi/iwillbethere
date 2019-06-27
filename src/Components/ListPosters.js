@@ -81,15 +81,29 @@ export default class ListPosters extends React.Component {
                                 <img src={imageUrl} className="responsive-img" />
                             </div>
                         </div>
-                        <div className="col s6 m8 l9 row remove-bottom-padding" style={{textAlign: "left"}}>
-                            <p className="left card-title">
-                                {/* <i className="material-icons left col s2 grey-bg">title</i> */}
-                                <b className="">{title} Poster</b>
-                            </p>
-                            <p className="left">
-                                {/* <i className="material-icons left col s2 grey-bg">view_headline</i> */}
-                                <b className="">{phrase}</b>
-                            </p>
+                        <div className="col s6 m8 l9" style={{textAlign: "left"}}>
+                            <ul class="collection hide-on-small-only show-on-medium-and-up">
+                                <li className="collection-item avatar">
+                                    <i className="material-icons circle large">title</i>
+                                    <b>Title</b>
+                                    <h5>{title} Poster</h5>
+                                </li>
+                                <li className="collection-item avatar">
+                                    <i className="material-icons circle large">short_text</i>
+                                    <b>Phrase</b>
+                                    <h6>{phrase}</h6>
+                                </li>
+                            </ul>
+                            <ul className="collection show-on-small hide-on-med-and-up">
+                                <li className="collection-item">
+                                    <b>Title</b>
+                                    <h5>{title} Poster</h5>
+                                </li>
+                                <li className="collection-item">
+                                    <b>Phrase</b>
+                                    <h6>{phrase}</h6>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                     <div className="card-action">

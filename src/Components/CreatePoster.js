@@ -183,7 +183,7 @@ export default class CreatePoster extends React.Component {
                         <div className="small-gap"></div>
 
                         <div className="input-field s12">
-                            <i className="material-icons prefix">view_headline</i>
+                            <i className="material-icons prefix">short_text</i>
                             <input
                                 ref={ (ref) => this.onAutoCompleteRef(ref) } 
                                 onChange={ (e) => { this.setState({ catchPhrase: e.target.value }); }}
