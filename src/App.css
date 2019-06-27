@@ -31,3 +31,32 @@
     transform: rotate(360deg);
   }
 }
+
+.small-gap {
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+.medium-gap {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.large-gap {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.col.s12 button.btn.another-btn {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+/* .card-action */
+.row.remove-bottom-padding {
+  margin-bottom: 0;
+}
+
+.grey-bg {
+  border: 1.5px dashed grey;
+}
