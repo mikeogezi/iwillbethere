@@ -32,15 +32,14 @@ export default class CustomizePoster extends React.Component {
     }
 
     componentDidMount () {
-        let { firebase } = this.context;
-        FirebaseUtils.mountAuthStateListener(firebase, this)
-
+        // let { firebase } = this.context;
+        // FirebaseUtils.mountAuthStateListener(firebase, this)
         this.loadPoster();
     }
 
     componentWillUnmount () {
-        let { firebase } = this.context;
-        FirebaseUtils.unmountAuthStateListener(firebase, this)
+        // let { firebase } = this.context;
+        // FirebaseUtils.unmountAuthStateListener(firebase, this)
     }
 
     async loadPoster () {
