@@ -60,3 +60,37 @@
 .grey-bg {
   border: 1.5px dashed grey;
 }
+
+/* .materialboxed{ display: inline-block; } */
+
+/* .center-img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%; */
+  /* } */
+
+  .responsive-container {
+    width: 300px;
+    border: dashed #333 1.5px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+.responsive-container img {
+    max-height: 100%;
+    max-width: 100%;
+    margin-bottom: -6px;
+}
+
+.loading-padding {
+    left: 10px; 
+    top: 8px;
+}
+
+.generating-preview {
+    margin-top: -10px;
+    margin-left: 36px;
+}

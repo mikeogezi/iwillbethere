@@ -9,6 +9,7 @@ import ImageUtils from '../Lib/ImageUtils'
 
 import { saveAs } from 'file-saver';
 
+
 import M from 'materialize-css';
 
 export default class CustomizePoster extends React.Component {
@@ -23,6 +24,9 @@ export default class CustomizePoster extends React.Component {
             generatingPreview: false,
             previewImageSrc: null
         };
+
+        this.hiddenBtn = React.createRef();
+        this.imgRef = React.createRef();
     }
 
     async componentDidMount () {
@@ -31,8 +35,6 @@ export default class CustomizePoster extends React.Component {
         try {
             let poster = await FirebaseUtils.getPoster(firebase, this.props.match.params.shortCode)
             poster = poster.docs[0].data()
-            // console.log(poster)
-            // window.v=poster
             this.setState({
                 fetchedData: !!poster,
                 poster
@@ -57,15 +59,17 @@ export default class CustomizePoster extends React.Component {
                     hasSelectedImage: true,
                     selectedImageSrc: e.target.result
                 })
-
-                this.generateImagePreview()
+                this.hiddenBtn.click()
+                // setTimeout(() => {
+                //     this.generateImagePreview()
+                // }, 500)
             };
 
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    async generateImagePreview () {
+    generateImagePreview = async (e) => {
         let { title, phrase } = this.state.poster;
         console.log("Generating Preview", title, phrase);
         this.setState({ generatingPreview: true });
@@ -142,12 +146,18 @@ export default class CustomizePoster extends React.Component {
 
     _renderPreview () {
         return (
-            <div className="materialboxed responsive-container center">
-                <img
-                    onLoad={ () => { M.AutoInit() } }
-                    className="responsive-img center"
-                    src={this.state.previewImageSrc} 
-                    id="poster-image-preview" />
+            <div className="container">
+                <div className="container">
+                    <div className="responsive-container center">
+                        <img
+                            ref={(ref) => { this.imgRef = ref; }}
+                            onLoad={ (e) => { M.Materialbox.init(this.imgRef); } }
+                            className="responsive-img center materialboxed center-img"
+                            src={this.state.previewImageSrc} 
+                            id="poster-image-preview" />
+                    </div>
+                </div>
+                <div className="large-gap"></div>
             </div>
         )
     }
@@ -169,58 +179,62 @@ export default class CustomizePoster extends React.Component {
                 }
                 {
                     this.state.fetchedData &&
-                    (
-                        <div>
-                            <h2>{this.state.poster.title} Poster</h2>
-                            <div className="col s12">
-                                <div className="row">
-                                    <form action="#">
-                                        <div className="file-field input-field">
-                                            <div className="btn blue">
-                                                <i className="material-icons left">image</i>
-                                                <span>
-                                                    { this.state.hasSelectedImage && "Change Poster Image" }
-                                                    { !this.state.hasSelectedImage && "Select Poster Image" }
-                                                </span>
-                                                <input 
-                                                    onChange={this.onFileChange} 
-                                                    accept="image/x-png,image/jpeg"
-                                                    type="file" />
-                                            </div>
-                                            <div className="file-path-wrapper">
-                                                <input className="file-path validate" type="text" />
-                                            </div>
+                    <div>
+                        <h2>{this.state.poster.title} Poster</h2>
+                        <div className="col s12">
+                            <div className="row">
+                                <form action="#">
+                                    <div className="file-field input-field">
+                                        <div className="btn blue">
+                                            <i className="material-icons left">image</i>
+                                            <span>
+                                                { this.state.hasSelectedImage && "Change Poster Image" }
+                                                { !this.state.hasSelectedImage && "Select Poster Image" }
+                                            </span>
+                                            <input 
+                                                onChange={this.onFileChange} 
+                                                accept="image/x-png,image/jpeg"
+                                                type="file" />
                                         </div>
-                                    </form>
-
-                                    <div className="col m12 s12 center">
-                                        {
-                                            this.state.generatingPreview &&
-                                            this._renderGeneratingPreviewMessage()
-                                        }
-                                        {
-                                            !this.state.generatingPreview &&
-                                            !this.state.previewImageSrc &&
-                                            this._renderNoImageSelected()
-                                        }
-                                        {
-                                            !this.state.generatingPreview &&
-                                            this.state.previewImageSrc &&
-                                            this._renderPreview()
-                                        }
+                                        <div className="file-path-wrapper">
+                                            <input className="file-path validate" type="text" />
+                                        </div>
                                     </div>
+                                </form>
 
-                                </div>
+                                <button className="hide" onClick={this.generateImagePreview} ref={(ref) => { this.hiddenBtn = ref; }}>
 
-                                <div className="row left">
-                                    <button className="btn left btn-large blue" onClick={this.onClickDownload}>
-                                        Download Your Customized Poster
-                                        <i className="material-icons left">file_download</i>
-                                    </button>
+                                </button>
+
+                            </div>
+
+                            <div className="row">
+                                <div className="col m12 s12 center">
+                                    {
+                                        this.state.generatingPreview &&
+                                        this._renderGeneratingPreviewMessage()
+                                    }
+                                    {
+                                        !this.state.generatingPreview &&
+                                        !this.state.previewImageSrc &&
+                                        this._renderNoImageSelected()
+                                    }
+                                    {
+                                        !this.state.generatingPreview &&
+                                        this.state.previewImageSrc &&
+                                        this._renderPreview()
+                                    }
                                 </div>
                             </div>
+
+                            <div className="row left">
+                                <button className="btn left btn-large blue" onClick={this.onClickDownload}>
+                                    Download Your Customized Poster
+                                    <i className="material-icons left">file_download</i>
+                                </button>
+                            </div>
                         </div>
-                    )
+                    </div>
                 }
             </div>
         )
