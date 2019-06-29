@@ -6,6 +6,7 @@ import FirebaseUtils from '../Lib/FirebaseUtils';
 import LoaderUtils from '../Lib/LoaderUtils'
 
 import ImageUtils from '../Lib/ImageUtils'
+import ErrorUtils from '../Lib/ErrorUtils'
 
 import { saveAs } from 'file-saver';
 
@@ -17,7 +18,8 @@ export default class CustomizePoster extends React.Component {
         super(props)
 
         this.state = {
-            fetchedData: false,
+            loading: true,
+            loadFailed: false,
             poster: null,
             hasSelectedImage: false,
             selectedImageSrc: null,
@@ -29,20 +31,40 @@ export default class CustomizePoster extends React.Component {
         this.imgRef = React.createRef();
     }
 
-    async componentDidMount () {
+    componentDidMount () {
         let { firebase } = this.context;
+        FirebaseUtils.mountAuthStateListener(firebase, this)
 
+        this.loadPoster();
+    }
+
+    componentWillUnmount () {
+        let { firebase } = this.context;
+        FirebaseUtils.unmountAuthStateListener(firebase, this)
+    }
+
+    async loadPoster () {
+        let { firebase } = this.context;
+        
         try {
             let poster = await FirebaseUtils.getPoster(firebase, this.props.match.params.shortCode)
-            poster = poster.docs[0].data()
+            poster = Object.assign({ id: poster.docs[0].id }, poster.docs[0].data())
+
             this.setState({
-                fetchedData: !!poster,
-                poster
+                poster,
+                loading: false,
+                loadFailed: false
             })
+
+            console.log("Poster", poster)
         }
         catch (e) {
             console.error("Error Getting Poster")
             console.error(e)
+            this.setState({
+                loading: false,
+                loadFailed: true
+            })
             M.toast({
                 html: "An Error occured while loading the Poster. Please check your Internet connection then try again."
             });
@@ -75,10 +97,11 @@ export default class CustomizePoster extends React.Component {
         this.setState({ generatingPreview: true });
 
         try {
+            let { posterImageSrc, posterImageUrl } = this.state.poster;
             let { 
                 destImageSrc: imageSrc,
                 srcImage
-            } = await ImageUtils.addImageToLeftHalfOfImage(this.state.selectedImageSrc, this.state.poster.posterImageSrc);
+            } = await ImageUtils.addImageToLeftHalfOfImage(this.state.selectedImageSrc, posterImageUrl || posterImageSrc);
             
             imageSrc = await ImageUtils.addTextToImage(imageSrc, { title, phrase }, srcImage);
             
@@ -174,11 +197,15 @@ export default class CustomizePoster extends React.Component {
         return (
             <div>
                 {
-                    !this.state.fetchedData &&
-                    <h2>Loading...</h2>
+                    this.state.loading &&
+                    LoaderUtils.renderPageLoadingSpinner()
                 }
                 {
-                    this.state.fetchedData &&
+                    this.state.loadFailed &&
+                    ErrorUtils.renderPageLoadFailed()
+                }
+                {
+                    !this.state.loading && !this.state.loadFailed &&
                     <div>
                         <h2>{this.state.poster.title} Poster</h2>
                         <div className="col s12">

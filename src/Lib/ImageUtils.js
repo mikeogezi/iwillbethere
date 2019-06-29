@@ -14,7 +14,11 @@ export default class ImageUtils {
         var ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0);
         var dataURL = canvas.toDataURL("image/png");
-        return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+        return this.removeImageDataPrefix(dataURL);
+    }
+
+    static removeImageDataPrefix (base64) {
+        return base64.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
     }
 
     static rgbToHex (rgb) { 
@@ -30,7 +34,21 @@ export default class ImageUtils {
         var green = this.rgbToHex(g);
         var blue = this.rgbToHex(b);
         return red + green + blue;
-    };
+    }
+
+    static async createThumbnail (imageSrc) {
+        try {
+            let image = await Jimp.read(imageSrc)
+            let thumbnail = image.clone()
+                .resize(320, Jimp.AUTO)
+                .quality(60)
+            let thumbnailSrc = thumbnail.getBase64Async(Jimp.MIME_JPEG);
+            return thumbnailSrc;
+        }
+        catch (e) {
+            throw e;
+        }
+    }
 
     static async addImageToLeftHalfOfImage (imageUri, sourceImageUri) {
         try {

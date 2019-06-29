@@ -19,9 +19,13 @@ export default class LoaderUtils {
         )
     }
 
-    static renderMulticolorLoadingSpinner () {
+    static renderPageLoadingSpinner () {
+        return this.renderMulticolorLoadingSpinner("page-loader preloader-wrapper small active loading-padding")
+    }
+
+    static renderMulticolorLoadingSpinner (className) {
         return (
-            <div className="preloader-wrapper small active loading-padding">
+            <div className={className || "preloader-wrapper small active loading-padding"}>
                 <div className="spinner-layer spinner-blue">
                     <div className="circle-clipper left">
                         <div className="circle"></div>

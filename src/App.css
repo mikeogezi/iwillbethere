@@ -94,3 +94,15 @@
     margin-top: -10px;
     margin-left: 36px;
 }
+
+.page-loader {
+  position: fixed !important;
+  top: 40% !important;
+  bottom: 50% !important;
+  left: 48% !important;
+  right: 48% !important;
+}
+
+.creating-poster {
+  
+}

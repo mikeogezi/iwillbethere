@@ -142,6 +142,7 @@ export default class App extends React.Component {
             </div>
             
           </div>
+          
           <footer className="page-footer transparent center-align">
             <div className="container">
               <div className="row">

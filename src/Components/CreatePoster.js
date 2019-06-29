@@ -44,7 +44,8 @@ export default class CreatePoster extends React.Component {
             showRegenerateTracker: "",
             title: "",
             phrase: "",
-            generatingPreview: false
+            generatingPreview: false,
+            creatingPoster: false,
         };
 
         this.phraseAutocompleteRef = React.createRef()
@@ -52,17 +53,18 @@ export default class CreatePoster extends React.Component {
             "I will be attending": null,
             "I will be voting for": null
         }
-
-        window.x = {
-            Jimp, that: this
-        }
     }
 
     componentDidMount () {
-        if (!this.props.signedIn) {
-            return this.props.history.push("/sign-in/")
-        }
-        M.AutoInit()
+        let { firebase } = this.context;
+        FirebaseUtils.mountAuthStateListener(firebase, this)
+
+        M.AutoInit();
+    }
+    
+    componentWillUnmount () {
+        let { firebase } = this.context;
+        FirebaseUtils.unmountAuthStateListener(firebase, this)
     }
 
     onAutoCompleteRef = (ref) => {
@@ -84,6 +86,14 @@ export default class CreatePoster extends React.Component {
 
     onClickPreview = async (e) => {
         console.log("Generate Preview Button Clicked")
+
+        if (!this.state.hasSelectedImage) {
+            M.toast({
+                html: "You must select a Poster image to generate a Preview."
+            })
+            return;        
+        }
+
         let { title, phrase } = this.state;
 
         if (this.state.showRegenerateTracker != this.makeText(title, phrase, this.state.posterImageSrc)) {
@@ -190,25 +200,51 @@ export default class CreatePoster extends React.Component {
 
     onClickSubmit = async (e) => {
         console.log("Clicked Submit")
+        if (!this.state.hasSelectedImage) {
+            M.toast({
+                html: "You must select a Poster image to create a Poster."
+            })
+            return;        
+        }
+        this.setState({ creatingPoster: true })
+
         try {
             await this.onClickPreview(null)
             let { title, phrase, posterImageSrc } = this.state;
             let posterDoc = {
                 shortCode: this.generateShortCode(),
                 title,
-                phrase,
-                posterImageSrc
+                phrase
             };
             let { firebase } = this.context;
 
             let poster = await FirebaseUtils.createPoster(firebase, posterDoc)
-            console.log("New Poster Id", poster.id)
+            const id = poster.id;
+            // console.log("New Poster Id", poster.id)
+            let thumbnailSrc = await ImageUtils.createThumbnail(posterImageSrc)
+            let uploads = await FirebaseUtils.uploadPosterImages(firebase, {
+                posterImageSrc,
+                thumbnailSrc,
+                id
+            });
 
+            // window.uploads = uploads;
+            let posterImageUrl = await uploads.pSnapshot.ref.getDownloadURL()
+            let thumbnailUrl = await uploads.tSnapshot.ref.getDownloadURL()
+            console.log("Donwnload URLs", posterImageUrl, thumbnailUrl)
+            poster = await FirebaseUtils.updatePosterDocWithImages(firebase, {
+                posterImageUrl,
+                thumbnailUrl,
+                id
+            })
+
+            this.setState({ creatingPoster: false })
             this.props.history.push("/app/posters/list/")
         }
         catch (e) {
             console.error("Error Creating Poster");
             console.error(e);
+            this.setState({ creatingPoster: false })
             M.toast({
                 html: "An Error occurred while submitting the Poster. Please check your Internet connection and try again."
             })
@@ -216,7 +252,10 @@ export default class CreatePoster extends React.Component {
     }
 
     render () {
-        let generatingPreviewClassName = `btn btn-large blue center ${this.state.generatingPreview && "disabled generating-preview" || ""}`
+        let { creatingPoster, generatingPreview } = this.state;
+        let generatingPreviewClassName = `btn btn-large blue center ${(generatingPreview || creatingPoster) && "disabled generating-preview" || ""}`
+        let createPosterClassName = `btn left btn-large blue ${(creatingPoster || generatingPreview) && "disabled creating-poster" || ""}`
+
         return (
             <div>
                 <h2>Create Poster</h2>
@@ -299,10 +338,14 @@ export default class CreatePoster extends React.Component {
                     </div>
 
                     <div className="row left">
-                        <button className="btn left btn-large blue" onClick={this.onClickSubmit}>
-                            Create Poster
+                        <button className={createPosterClassName} onClick={this.onClickSubmit}>
+                            { this.state.creatingPoster && "Creating Poster" || "Create Poster" }
                             <i className="material-icons left">add_to_photos</i>
                         </button>
+                        {
+                            this.state.creatingPoster &&
+                            this._renderLoadingSpinner()
+                        }
                     </div>
                 </div>
             </div>

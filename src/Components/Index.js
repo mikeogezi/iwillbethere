@@ -6,9 +6,13 @@ import FirebaseUtils from '../Lib/FirebaseUtils';
 
 export default class Index extends React.Component {
     componentDidMount () {
-        if (!this.props.signedIn) {
-            return this.props.history.push("/sign-in/")
-        }
+        let { firebase } = this.context;
+        FirebaseUtils.mountAuthStateListener(firebase, this)
+    }
+
+    componentWillUnmount () {
+        let { firebase } = this.context;
+        FirebaseUtils.unmountAuthStateListener(firebase, this)
     }
 
     render () {

@@ -11,33 +11,40 @@ import concertTwo from '../Images/concertTwo.jpg';
 import { AppConsumer, AppContext } from './AppContext';
 import FirebaseUtils from '../Lib/FirebaseUtils';
 
+import LoaderUtils from '../Lib/LoaderUtils'
+import ErrorUtils from '../Lib/ErrorUtils'
+
 import M from 'materialize-css';
 
 export default class ListPosters extends React.Component {
     constructor (props) {
         super(props)
 
+        // this.state.posters = [
+        //     {
+        //         "imageUrl": concertOne,
+        //         "title": "Levitation 2019",
+        //         "phrase": "I will be going to the Levitation Music Concert in November",
+        //         "id": "1"
+        //     },
+        //     {
+        //         "imageUrl": concertTwo,
+        //         "title": "Levitation Weekly",
+        //         "phrase": "I will be going to Levitation Weekly Tommorow",
+        //         "id": "2"
+        //     },
+        //     {
+        //         "imageUrl": politician,
+        //         "title": "Alfred Lasisi",
+        //         "phrase": "I stand with Comrade Alfred Lasisi in the upcoming NASSA Elections",
+        //         "id": "3"
+        //     }
+        // ]
+
         this.state = {
-            posters: [
-                // {
-                //     "imageUrl": concertOne,
-                //     "title": "Levitation 2019",
-                //     "phrase": "I will be going to the Levitation Music Concert in November",
-                //     "id": "1"
-                // },
-                // {
-                //     "imageUrl": concertTwo,
-                //     "title": "Levitation Weekly",
-                //     "phrase": "I will be going to Levitation Weekly Tommorow",
-                //     "id": "2"
-                // },
-                // {
-                //     "imageUrl": politician,
-                //     "title": "Alfred Lasisi",
-                //     "phrase": "I stand with Comrade Alfred Lasisi in the upcoming NASSA Elections",
-                //     "id": "3"
-                // }
-            ],
+            loading: true,
+            loadFailed: false,
+            posters: [],
             toBeDeletedId: null
         };
 
@@ -45,16 +52,49 @@ export default class ListPosters extends React.Component {
     }
 
     componentDidMount () {
-        if (!this.props.signedIn) {
-            return this.props.history.push("/sign-in/")
+        let { firebase } = this.context;
+        FirebaseUtils.mountAuthStateListener(firebase, this)
+
+        this.loadPosters();
+    }
+    
+    componentWillUnmount () {
+        let { firebase } = this.context;
+        FirebaseUtils.unmountAuthStateListener(firebase, this)
+    }
+
+    async loadPosters () {
+        try {
+            let { firebase } = this.context;
+            let posters = await FirebaseUtils.getPosters(firebase);
+            posters = posters.docs.map(p => Object.assign({ id: p.id }, p.data()))
+
+            this.setState({
+                posters,
+                loading: false,
+                loadFailed: false
+            });
+            
+            console.log("Posters", posters)
         }
-        this.loadPosters()
+        catch (e) {
+            console.error("Error Loading Posters");
+            console.error(e);
+            this.setState({
+                loading: false,
+                loadFailed: true
+            });
+            M.toast({
+                html: "An Error occured while loading the Posters. Please check your Internet connection then try again."
+            });
+        }
     }
 
     openConfirmDeleteModal (id) {
         this.setState({
             toBeDeletedId: id
         })
+        M.Modal.init(this.modalRef)
         M.Modal.getInstance(this.modalRef).open()
     }
 
@@ -68,19 +108,20 @@ export default class ListPosters extends React.Component {
             toBeDeletedId: null
         })
         M.toast({
-            html: "Poster Has Been Deleted"
+            html: "Poster has been Deleted."
         })
     }
 
     onClickCopyLink = (e) => {
         M.toast({
-            html: "Poster Link Copied To The Clipboard<br />" + 
+            html: "Poster link copied to the Clipboard<br />" + 
                 this.copyLink(e.target.id)
         });
     }
 
     copyLink = (id) => {
-        let [ { shortCode } ] = this.state.posters.filter(({ shortCode }) => shortCode);
+        // window.x = this.state.posters
+        let [ { shortCode } ] = this.state.posters.filter((poster) => poster.id == id);
         
         console.log("Short Code", shortCode);
         
@@ -108,36 +149,15 @@ export default class ListPosters extends React.Component {
         FirebaseUtils.deletePoster(firebase, id);
     }
 
-    async loadPosters () {
-        try {
-            let { firebase } = this.context;
-            let posters = await FirebaseUtils.getPosters(firebase);
-            window.d = posters
-            this.setState({
-                posters: posters.docs.map(p => p.data())
-            });
-        }
-        catch (e) {
-            console.error("Error Loading Posters");
-            console.error(e);
-            this.setState({
-                posters: null
-            });
-            M.toast({
-                html: "An Error occured while loading the Posters. Please check your Internet connection then try again."
-            });
-        }
-    }
-
     // TODO: Add id key to poster object
-    _renderPosterCard = ({ shortCode, posterImageSrc, title, phrase, id }) => {
+    _renderPosterCard = ({ shortCode, posterImageUrl, posterImageSrc, thumbnailUrl, title, phrase, id }) => {
         return (
             <div className="row" key={id}>
                 <div className="card grey lighten-3">
                     <div className="card-content row remove-bottom-padding">
                         <div className="col s6 m4 l3">
                             <div className="materialboxed responsive-container center">
-                                <img src={posterImageSrc} className="responsive-img" />
+                                <img src={thumbnailUrl || posterImageSrc} className="responsive-img" />
                             </div>
                         </div>
                         <div className="col s6 m8 l9" style={{textAlign: "left"}}>
@@ -185,11 +205,15 @@ export default class ListPosters extends React.Component {
     }
 
     _renderNoPosters = () => {
-        return this._renderNotList("You Don't Have Any Posters Yet")
+        return this._renderNotList("You don't have any Posters yet.")
     }
 
     _renderErrorLoading = () => {
         return this._renderNotList("An error occured while loading the Poster. Reload the page to try again.")
+    }
+
+    _renderCreateNewPoster () {
+        return this._renderNotList("You can create even more Posters.")
     }
 
     _renderNotList = (message) => {
@@ -217,39 +241,46 @@ export default class ListPosters extends React.Component {
     render () {
         return (
             <div>
-                <div id="confirm-modal" className="modal" ref={(ref) => { this.modalRef = ref; }}>
-                    <div className="modal-content">
-                        <h5>
-                            Are You Sure You Want To Delete The Poster?
-                            <i className="material-icons left">danger</i>
-                        </h5>
+                {
+                    this.state.loading &&
+                    LoaderUtils.renderPageLoadingSpinner()
+                }
+                {
+                    this.state.loadFailed &&
+                    ErrorUtils.renderPageLoadFailed()
+                }
+                {
+                    !this.state.loading && !this.state.loadFailed &&
+                    <div>
+                        <div id="confirm-modal" className="modal" ref={(ref) => { this.modalRef = ref; }}>
+                            <div className="modal-content">
+                                <h5>
+                                    Are you sure you want to delete the Poster?
+                                    <i className="material-icons left">danger</i>
+                                </h5>
+                            </div>
+                            <div className="modal-footer">
+                                <a onClick={this.onClickConfirmDelete} className="modal-action modal-close waves-effect waves-dark btn-flat red white-text" href='#!'>
+                                    <b>Yes, Delete the Poster</b>
+                                </a>
+                                <a className="left modal-action modal-close waves-effect waves-dark btn-flat blue-text" href='#!'>
+                                    <b>Cancel</b>
+                                </a>
+                            </div>
+                        </div>
+                        <h2>Your Posters</h2>
+                        <div className="col s12">
+                            {
+                                !!this.state.posters.length &&
+                                this.state.posters.map(this._renderPosterCard)
+                            }
+                            {
+                                !this.state.posters.length &&
+                                this._renderNoPosters()
+                            }
+                        </div>
                     </div>
-                    <div className="modal-footer">
-                        <a onClick={this.onClickConfirmDelete} className="modal-action modal-close waves-effect waves-dark btn-flat red white-text" href='#!'>
-                            <b>Yes, Delete The Poster</b>
-                        </a>
-                        <a className="left modal-action modal-close waves-effect waves-dark btn-flat blue-text" href='#!'>
-                            <b>Cancel</b>
-                        </a>
-                    </div>
-                </div>
-                <h2>Your Posters</h2>
-                <div className="col s12">
-                    {
-                        (this.state.posters == null) &&
-                        this._renderErrorLoading()
-                    }
-                    {
-                        (this.state.posters != null) &&
-                        !!this.state.posters.length &&
-                        this.state.posters.map(this._renderPosterCard)
-                    }
-                    {
-                        (this.state.posters != null) &&
-                        !this.state.posters.length &&
-                        this._renderNoPosters()
-                    }
-                </div>
+                }
             </div>
         )
     }
