@@ -20,7 +20,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build && cp cors/_headers build && cp cors/_redirects build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "cors": "gsutil cors set cors/firebase-cors.json gs://i-will-be-there-xyz.appspot.com"
   },
   "eslintConfig": {
     "extends": "react-app"

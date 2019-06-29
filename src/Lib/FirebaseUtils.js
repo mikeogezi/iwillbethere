@@ -60,8 +60,8 @@ export default class FirebaseUtils {
         const storage = firebase.storage()
 
         try {
-            const pRef = storage.ref().child(`${POSTER_IMAGE_ROOT}/${id}.jpeg`)
-            const tRef = storage.ref().child(`${POSTER_THUMBNAIL_ROOT}/${id}.jpeg`)
+            const pRef = storage.ref().child(`${POSTER_IMAGE_ROOT}/${id}-original.jpeg`)
+            const tRef = storage.ref().child(`${POSTER_THUMBNAIL_ROOT}/${id}-thumbnail.jpeg`)
             // let pSnapshot = await pRef.put(window.atob(ImageUtils.removeImageDataPrefix(posterImageSrc)))
             // let tSnapshot = await tRef.put(window.atob(ImageUtils.removeImageDataPrefix(thumbnailSrc)))
             let pSnapshot = await pRef.putString(posterImageSrc, "data_url")
