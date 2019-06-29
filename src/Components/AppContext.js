@@ -16,8 +16,11 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
+let signedIn = false;
+
 export const AppContext = React.createContext({
-    firebase: {}
+    firebase: {},
+    // signedIn: false
 });
 
 export class AppProvider extends React.Component {
@@ -42,7 +45,7 @@ export class AppProvider extends React.Component {
 
     render () {
         return (
-            <AppContext.Provider value={{firebase}}>
+            <AppContext.Provider value={{ firebase /*, signedIn */ }}>
                 {this.props.children}
             </AppContext.Provider>
         )

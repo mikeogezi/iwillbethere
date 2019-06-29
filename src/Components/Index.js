@@ -1,8 +1,16 @@
 import React from 'react';
 
 import { Link } from 'react-router-dom';
+import { AppContext } from './AppContext';
+import FirebaseUtils from '../Lib/FirebaseUtils';
 
 export default class Index extends React.Component {
+    componentDidMount () {
+        if (!this.props.signedIn) {
+            return this.props.history.push("/sign-in/")
+        }
+    }
+
     render () {
         return (
             <div>
@@ -37,3 +45,5 @@ export default class Index extends React.Component {
         )
     }
 }
+
+Index.contextType = AppContext

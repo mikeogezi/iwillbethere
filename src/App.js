@@ -9,8 +9,7 @@ import Index from './Components/Index';
 import SignIn from './Components/SignIn';
 import LogOut from './Components/LogOut';
 import Landing from './Components/Landing';
-import CreatorPoster from './Components/CreatorPoster';
-import ViewerPoster from './Components/ViewerPoster';
+import CustomizePoster from './Components/CustomizePoster';
 import CreatePoster from './Components/CreatePoster';
 import ListPosters from './Components/ListPosters';
 import ViewPoster from './Components/ViewPoster';
@@ -33,7 +32,7 @@ export default class App extends React.Component {
     super(props)
 
     this.state = {
-      isSignedIn: false,
+      signedIn: false,
       user: null
     }
   }
@@ -43,7 +42,7 @@ export default class App extends React.Component {
   }
 
   _renderSignInLink = () => {
-    if (!this.state.isSignedIn) {
+    if (!this.state.signedIn) {
       return (
         <li>
           <Link to="/sign-in/">
@@ -58,13 +57,13 @@ export default class App extends React.Component {
   _onAuthStateChanged = (user) => {
     console.log('onAuthStateChanged')
     this.setState({
-      isSignedIn: !!user,
+      signedIn: !!user,
       user
     })
   }
 
   _renderLogOutLink = () => {
-    if (this.state.isSignedIn) {
+    if (this.state.signedIn) {
       return (
         <li>
           <Link to="/log-out/">
@@ -120,21 +119,46 @@ export default class App extends React.Component {
             <Switch>
               <Route path="/" exact component={Landing} />
               
-              <Route path="/events/:eventId/:posterId/" component={CreatorPoster} />
-              
               <Route path="/sign-in/" component={SignIn} />
               <Route path="/log-out/" component={LogOut} />
 
-              <Route path="/app/" exact component={Index} />
-              <Route path="/app/posters/create/" exact component={CreatePoster} />
-              <Route path="/app/posters/list/" exact component={ListPosters} />
-              <Route path="/app/posters/:posterId/" exact component={ViewPoster} />
+              <Route path="/app/" exact
+                render={ (props) => <Index {...props} signedIn={this.state.signedIn} /> }
+              />
+              <Route path="/app/posters/create/" exact 
+                render={ (props) => <CreatePoster {...props} signedIn={this.state.signedIn} /> }
+              />
+              <Route path="/app/posters/list/" exact 
+                render={ (props) => <ListPosters {...props} signedIn={this.state.signedIn} /> }
+              />
               
-              <Route path="/p/:shortCodeId/" component={ViewerPoster} />
+              {/* TODO: Implement these two routes */}
+              <Route path="/app/posters/:posterId/" exact
+                render={ (props) => <ViewPoster {...props} signedIn={this.state.signedIn} /> }
+              />
+              
+              <Route path="/p/:shortCode/" component={CustomizePoster} />
             </Switch>
             </div>
             
           </div>
+          <footer className="page-footer transparent center-align">
+            <div className="container">
+              <div className="row">
+                <div className="col s12">
+                  <p className="grey-text text-darken-1 text-center" style={{ fontWeight: "bold" }}>
+                    Designed with&nbsp;
+                    <i className="material-icons red-text">favorite_outline</i>
+                    &nbsp;by&nbsp;
+                    <a href="https://github.com/okibeogezi">
+                      Mike Ogezi
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </footer>
+    
         </Router>
       </AppProvider>
     );

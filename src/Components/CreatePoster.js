@@ -5,11 +5,19 @@ import M from 'materialize-css';
 
 import './CreatePoster.css'
 
-import person from '../Images/person.jpg'
+import person from '../Images/person.jpg';
+import concertOne from '../Images/concertOne.jpg';
+import concertTwo from '../Images/concertTwo.jpg';
+import hypeman from '../Images/hypeman.jpg';
+import people from '../Images/people.jpg';
 
 import Jimp from 'jimp'
 
 import ImageUtils from '../Lib/ImageUtils'
+import LoaderUtils from '../Lib/LoaderUtils'
+
+import { AppConsumer, AppContext } from './AppContext';
+import FirebaseUtils from '../Lib/FirebaseUtils';
 
 // import Vibrant from 'node-vibrant'
 
@@ -17,12 +25,26 @@ export default class CreatePoster extends React.Component {
     constructor (props) {
         super(props);
 
+        // this.state = {
+        //     hasSelectedImage: true,
+        //     posterImageSrc: concertTwo, // TODO
+        //     userImageSrc: !people || !hypeman || person,
+        //     initialUserImageSrc: !people || !hypeman || person,
+        //     showRegenerateTracker: "",
+        //     title: "Levitation", // TODO
+        //     phrase: "I Will Be Attending The 2019 Levitation Music Concert On The 3rd of November", // TODO
+        //     generatingPreview: false
+        // };
+
         this.state = {
             hasSelectedImage: false,
             posterImageSrc: null,
-            userImageSrc: null,
+            userImageSrc: person,
+            initialUserImageSrc: person,
+            showRegenerateTracker: "",
             title: "",
-            catchPhrase: "",
+            phrase: "",
+            generatingPreview: false
         };
 
         this.phraseAutocompleteRef = React.createRef()
@@ -37,18 +59,10 @@ export default class CreatePoster extends React.Component {
     }
 
     componentDidMount () {
+        if (!this.props.signedIn) {
+            return this.props.history.push("/sign-in/")
+        }
         M.AutoInit()
-        console.log("Adding Text To The Image")
-        ImageUtils.addTextToImage(person)
-            .then(imageSrc => {
-                this.setState({
-                    userImageSrc: imageSrc
-                })
-            })
-            .catch(err => {
-                console.error("Error Adding Text To The Image")
-                console.error(err)
-            })
     }
 
     onAutoCompleteRef = (ref) => {
@@ -58,10 +72,50 @@ export default class CreatePoster extends React.Component {
             onAutocomplete: (phrase) => {
                 console.log(phrase)
                 this.setState({
-                    catchPhrase: phrase
+                    phrase
                 })
             }
         })
+    }
+
+    makeText (title, phrase, pSrc) {
+        return title + phrase + pSrc
+    }
+
+    onClickPreview = async (e) => {
+        console.log("Generate Preview Button Clicked")
+        let { title, phrase } = this.state;
+
+        if (this.state.showRegenerateTracker != this.makeText(title, phrase, this.state.posterImageSrc)) {
+            console.log("Generating Preview", title, phrase);
+            this.setState({ generatingPreview: true });
+
+            try {
+                let { 
+                    destImageSrc: imageSrc,
+                    srcImage
+                } = await ImageUtils.addImageToLeftHalfOfImage(this.state.initialUserImageSrc, this.state.posterImageSrc);
+                
+                imageSrc = await ImageUtils.addTextToImage(imageSrc, { title, phrase }, srcImage);
+                
+                this.setState({
+                    generatingPreview: false,
+                    userImageSrc: imageSrc,
+                    showRegenerateTracker: this.makeText(title, phrase, this.state.posterImageSrc)
+                });
+                M.toast({
+                    html: "The Preview was successfully generated."
+                })
+            }
+            catch (e) {
+                this.setState({ generatingPreview: false });
+                M.toast({
+                    html: "An Error occured while generating the Preview. The image format may not be supported. Please Try Again."
+                })
+                console.error("Error While Compositing Image");
+                console.error(e);
+            }
+        }
     }
 
     _renderPosterImage = () => {
@@ -100,7 +154,7 @@ export default class CreatePoster extends React.Component {
                 <img
                     onLoad={ () => { M.AutoInit() } }
                     className="responsive-img center"
-                    src={this.state.userImageSrc || person}
+                    src={this.state.userImageSrc}
                     id="user-image-preview" />
             </div>
         )
@@ -122,15 +176,47 @@ export default class CreatePoster extends React.Component {
         }
     }
 
+    _renderLoadingSpinner = () => {
+        return LoaderUtils.renderMulticolorLoadingSpinner()
+    }
+
     onFileChange = (e) => {
         this._readImageSrc(e.target)
     }
 
-    onClickSubmit = (e) => {
+    generateShortCode = () => {
+        return Math.random().toString(36).substring(2, 7).toUpperCase();
+    }
+
+    onClickSubmit = async (e) => {
         console.log("Clicked Submit")
+        try {
+            await this.onClickPreview(null)
+            let { title, phrase, posterImageSrc } = this.state;
+            let posterDoc = {
+                shortCode: this.generateShortCode(),
+                title,
+                phrase,
+                posterImageSrc
+            };
+            let { firebase } = this.context;
+
+            let poster = await FirebaseUtils.createPoster(firebase, posterDoc)
+            console.log("New Poster Id", poster.id)
+
+            this.props.history.push("/app/posters/list/")
+        }
+        catch (e) {
+            console.error("Error Creating Poster");
+            console.error(e);
+            M.toast({
+                html: "An Error occurred while submitting the Poster. Please check your Internet connection and try again."
+            })
+        }
     }
 
     render () {
+        let generatingPreviewClassName = `btn btn-large blue center ${this.state.generatingPreview && "disabled generating-preview" || ""}`
         return (
             <div>
                 <h2>Create Poster</h2>
@@ -141,8 +227,8 @@ export default class CreatePoster extends React.Component {
                                 <div className="btn blue">
                                     <i className="material-icons left">image</i>
                                     <span>
-                                        { this.state.hasSelectedImage && "Change Image" }
-                                        { !this.state.hasSelectedImage && "Select Image" }
+                                        { this.state.hasSelectedImage && "Change Poster Image" }
+                                        { !this.state.hasSelectedImage && "Select Poster Image" }
                                     </span>
                                     <input 
                                         onChange={this.onFileChange} 
@@ -167,14 +253,31 @@ export default class CreatePoster extends React.Component {
 
                     </div>
 
+                    <hr />
+                    <div className="medium-gap"></div>
+
+                    <div className="row">
+                        <div className="col s12">
+                            <button className={generatingPreviewClassName} onClick={this.onClickPreview}>
+                                { this.state.generatingPreview && "Generating Preview" || "Generate Preview" }
+                                <i className="material-icons left">photo_filter</i>
+                            </button>
+                            {
+                                this.state.generatingPreview &&
+                                this._renderLoadingSpinner()
+                            }
+                        </div>
+                    </div>
+
                     <div className="small-gap"></div>
 
                     <div className="row">
-                        <div className="input-field s12">
+                        <div className="input-field col s12">
                             <i className="material-icons prefix">title</i>
                             <input
-                                onChange={ (e) => { this.setState({ title: e.target.value }); }}
+                                onChange={ (e) => { this.setState({title: e.target.value}); }}
                                 type="text"
+                                value={this.state.title}
                                 name="title" id="title"
                             />
                             <label htmlFor="title">Event/Campaign Name</label>
@@ -182,12 +285,13 @@ export default class CreatePoster extends React.Component {
 
                         <div className="small-gap"></div>
 
-                        <div className="input-field s12">
+                        <div className="input-field col s12">
                             <i className="material-icons prefix">short_text</i>
                             <input
                                 ref={ (ref) => this.onAutoCompleteRef(ref) } 
-                                onChange={ (e) => { this.setState({ catchPhrase: e.target.value }); }}
+                                onChange={ (e) => { this.setState({phrase: e.target.value}); }}
                                 type="text" id="autocomplete-phrase"
+                                value={this.state.phrase}
                                 className="autocomplete no-autoinit" 
                             />
                             <label htmlFor="autocomplete-input">Poster Phrase</label>
@@ -205,3 +309,5 @@ export default class CreatePoster extends React.Component {
         )
     }
 }
+
+CreatePoster.contextType = AppContext
