@@ -191,7 +191,7 @@ export default class CustomizePoster extends React.Component {
                 }
                 {
                     this.state.loadFailed &&
-                    ErrorUtils.renderPageLoadFailed()
+                    ErrorUtils.renderLoadingPageFailed()
                 }
                 {
                     !this.state.loading && !this.state.loadFailed &&

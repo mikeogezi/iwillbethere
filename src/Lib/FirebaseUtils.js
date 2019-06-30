@@ -49,7 +49,6 @@ export default class FirebaseUtils {
         const db = firebase.firestore()
 
         try {
-            const { uid } = firebase.auth().currentUser
             let poster = await db.collection(POSTERS_COLLECTION_NAME)
                 .where("shortCode", "==", shortCode)
                 .get();
