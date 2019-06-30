@@ -14,14 +14,14 @@ export default class ImageUtils {
         var ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0);
         var dataURL = canvas.toDataURL("image/png");
-        return this.removeImageDataPrefix(dataURL);
+        return this._removeImageDataPrefix(dataURL);
     }
 
-    static removeImageDataPrefix (base64) {
+    static _removeImageDataPrefix (base64) {
         return base64.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
     }
 
-    static rgbToHex (rgb) { 
+    static _rgbToHex (rgb) { 
         var hex = parseInt(Number(rgb)).toString(16);
         if (hex.length < 2) {
             hex = "0" + hex;
@@ -29,7 +29,7 @@ export default class ImageUtils {
         return hex;
     }
 
-    static fullColorHex ([r, g, b]) {   
+    static _fullColorHex ([r, g, b]) {   
         var red = this.rgbToHex(r);
         var green = this.rgbToHex(g);
         var blue = this.rgbToHex(b);
@@ -50,10 +50,23 @@ export default class ImageUtils {
         }
     }
 
+    static _maxWidth = 640;
+    static _reduceImageResolution (img) {
+        if (img.getWidth() < this._maxWidth) {
+            return img;
+        }
+
+        return img
+            .resize(this._maxWidth, Jimp.AUTO)
+    }
+
     static async addImageToLeftHalfOfImage (imageUri, sourceImageUri) {
         try {
             let destImage = await Jimp.read(imageUri);
             let srcImage = await Jimp.read(sourceImageUri);
+
+            destImage = this._reduceImageResolution(destImage);
+            srcImage = this._reduceImageResolution(srcImage);
 
             // Resize source image to fill 50% or 100% of destination width
             srcImage.resize(destImage.getWidth() / 2, Jimp.AUTO);

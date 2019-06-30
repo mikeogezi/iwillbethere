@@ -3,12 +3,12 @@ import { POSTERS_COLLECTION_NAME, POSTER_IMAGE_ROOT, POSTER_THUMBNAIL_ROOT } fro
 import ImageUtils from './ImageUtils'
 
 export default class FirebaseUtils {
-    static async deletePoster (firebase, posterId) {
+    static async deletePoster (firebase, id) {
         const db = firebase.firestore()
         
         try {
             await db.collection(POSTERS_COLLECTION_NAME)
-                    .doc(posterId)
+                    .doc(id)
                     .delete()
         }
         catch (e) {
@@ -20,8 +20,9 @@ export default class FirebaseUtils {
         const db = firebase.firestore()
 
         try {
+            const { uid } = firebase.auth().currentUser
             let poster = await db.collection(POSTERS_COLLECTION_NAME)
-                .add({ title, phrase, shortCode });
+                .add({ title, phrase, shortCode, uid });
             return poster;
         }
         catch (e) {
@@ -33,7 +34,9 @@ export default class FirebaseUtils {
         const db = firebase.firestore();
 
         try {
+            const { uid } = firebase.auth().currentUser
             let posters = await db.collection(POSTERS_COLLECTION_NAME)
+                .where("uid", "==", uid)
                 .get();
             return posters;
         }
@@ -46,6 +49,7 @@ export default class FirebaseUtils {
         const db = firebase.firestore()
 
         try {
+            const { uid } = firebase.auth().currentUser
             let poster = await db.collection(POSTERS_COLLECTION_NAME)
                 .where("shortCode", "==", shortCode)
                 .get();
@@ -60,8 +64,9 @@ export default class FirebaseUtils {
         const storage = firebase.storage()
 
         try {
-            const pRef = storage.ref().child(`${POSTER_IMAGE_ROOT}/${id}-original.jpeg`)
-            const tRef = storage.ref().child(`${POSTER_THUMBNAIL_ROOT}/${id}-thumbnail.jpeg`)
+            const { uid } = firebase.auth().currentUser
+            const pRef = storage.ref().child(`${POSTER_IMAGE_ROOT}/${uid}/${id}-original.jpeg`)
+            const tRef = storage.ref().child(`${POSTER_THUMBNAIL_ROOT}/${uid}/${id}-thumbnail.jpeg`)
             // let pSnapshot = await pRef.put(window.atob(ImageUtils.removeImageDataPrefix(posterImageSrc)))
             // let tSnapshot = await tRef.put(window.atob(ImageUtils.removeImageDataPrefix(thumbnailSrc)))
             let pSnapshot = await pRef.putString(posterImageSrc, "data_url")

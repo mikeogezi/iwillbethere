@@ -30,13 +30,13 @@ export default class Index extends React.Component {
                             </div>
                             <div className="card-action">
                                 <div className="row">
-                                    <Link className="btn left btn-large blue" to="/app/posters/create">
+                                    <Link className="btn left btn-large blue" to="/app/posters/create/">
                                         Create New Poster
                                         <i className="material-icons left small">add_to_photos</i>
                                     </Link>
                                 </div>
                                 <div className="row remove-bottom-padding">
-                                    <Link className="btn left btn-large blue" to="/app/posters/list">
+                                    <Link className="btn left btn-large blue" to="/app/posters/list/">
                                         View Posters
                                         <i className="material-icons left small">filter</i>
                                     </Link>

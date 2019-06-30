@@ -10,14 +10,6 @@ export default class ErrorUtils {
                             <b className="">{message || "An error occured while loading the page. Please check your internet connection and try again."}</b>
                         </span>
                     </div>
-                    {/* <div className="card-action">
-                        <div className="row remove-bottom-padding">
-                            <Link className="btn btn-large blue" to="/app/posters/create">
-                                Create New Poster
-                                <i className="material-icons left small">add_to_photos</i>
-                            </Link>
-                        </div>
-                    </div> */}
                 </div>
             </div>
         )

@@ -281,12 +281,12 @@ export default class CreatePoster extends React.Component {
                         </form>
 
                         <div className="col l6 m12 s12">
-                            <h5 className="center">Poster Image</h5>
+                            <h5 className="center">Your Poster Image</h5>
                             { this._renderPosterImage() }
                         </div>
 
                         <div className="col l6 m12 s12">
-                            <h5 className="center">User Image</h5>
+                            <h5 className="center">Sample User Image</h5>
                             { this._renderUserImage() }
                         </div>
 
@@ -333,7 +333,7 @@ export default class CreatePoster extends React.Component {
                                 value={this.state.phrase}
                                 className="autocomplete no-autoinit" 
                             />
-                            <label htmlFor="autocomplete-input">Poster Phrase</label>
+                            <label htmlFor="autocomplete-input">Poster Phrase (This text appears on the user's customized poster)</label>
                         </div>
                     </div>
 

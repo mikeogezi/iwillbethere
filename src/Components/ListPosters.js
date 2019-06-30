@@ -18,28 +18,7 @@ import M from 'materialize-css';
 
 export default class ListPosters extends React.Component {
     constructor (props) {
-        super(props)
-
-        // this.state.posters = [
-        //     {
-        //         "imageUrl": concertOne,
-        //         "title": "Levitation 2019",
-        //         "phrase": "I will be going to the Levitation Music Concert in November",
-        //         "id": "1"
-        //     },
-        //     {
-        //         "imageUrl": concertTwo,
-        //         "title": "Levitation Weekly",
-        //         "phrase": "I will be going to Levitation Weekly Tommorow",
-        //         "id": "2"
-        //     },
-        //     {
-        //         "imageUrl": politician,
-        //         "title": "Alfred Lasisi",
-        //         "phrase": "I stand with Comrade Alfred Lasisi in the upcoming NASSA Elections",
-        //         "id": "3"
-        //     }
-        // ]
+        super(props);
 
         this.state = {
             loading: true,
@@ -67,7 +46,7 @@ export default class ListPosters extends React.Component {
         try {
             let { firebase } = this.context;
             let posters = await FirebaseUtils.getPosters(firebase);
-            posters = posters.docs.map(p => Object.assign({ id: p.id }, p.data()))
+            posters = posters.docs.map(p => ({ ...p.data(), id: p.id }))
 
             this.setState({
                 posters,
@@ -126,7 +105,7 @@ export default class ListPosters extends React.Component {
         console.log("Short Code", shortCode);
         
         let cE = document.createElement("textarea")
-        let value = `${window.location.origin}/p/${shortCode}`
+        let value = `${window.location.origin}/p/${shortCode}/`
         cE.value = value
         document.body.append(cE)
         cE.select()
@@ -188,14 +167,18 @@ export default class ListPosters extends React.Component {
                     <div className="card-action">
                         <div className="row remove-bottom-padding">
                             <div className="col s12">
-                                <button onClick={this.onClickCopyLink} className="another-btn btn left blue" id={id}>
+                                <button onClick={this.onClickCopyLink} className="another-btn btn left blue" id={`copy-${id}`}>
                                     Copy Share Link
                                     <i className="material-icons left small">link</i>
                                 </button>
-                                <button onClick={this.onClickDelete} className="btn left red" id={id}>
+                                <button onClick={this.onClickDelete} className="another-btn btn left red" id={`delete-${id}`}>
                                     Delete Poster
                                     <i className="material-icons left small">delete</i>
                                 </button>
+                                <Link to={`/p/${shortCode}/`} className="another-btn btn left blue" id={`open-${id}`}>
+                                    Open 
+                                    <i className="material-icons left small">open_in_new</i>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -227,7 +210,7 @@ export default class ListPosters extends React.Component {
                     </div>
                     <div className="card-action">
                         <div className="row remove-bottom-padding">
-                            <Link className="btn btn-large blue" to="/app/posters/create">
+                            <Link className="btn btn-large blue" to="/app/posters/create/">
                                 Create New Poster
                                 <i className="material-icons left small">add_to_photos</i>
                             </Link>
@@ -247,7 +230,7 @@ export default class ListPosters extends React.Component {
                 }
                 {
                     this.state.loadFailed &&
-                    ErrorUtils.renderPageLoadFailed()
+                    ErrorUtils.renderLoadingPageFailed()
                 }
                 {
                     !this.state.loading && !this.state.loadFailed &&

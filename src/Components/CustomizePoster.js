@@ -32,14 +32,7 @@ export default class CustomizePoster extends React.Component {
     }
 
     componentDidMount () {
-        // let { firebase } = this.context;
-        // FirebaseUtils.mountAuthStateListener(firebase, this)
         this.loadPoster();
-    }
-
-    componentWillUnmount () {
-        // let { firebase } = this.context;
-        // FirebaseUtils.unmountAuthStateListener(firebase, this)
     }
 
     async loadPoster () {
@@ -47,7 +40,7 @@ export default class CustomizePoster extends React.Component {
         
         try {
             let poster = await FirebaseUtils.getPoster(firebase, this.props.match.params.shortCode)
-            poster = Object.assign({ id: poster.docs[0].id }, poster.docs[0].data())
+            poster = { ...poster.docs[0].data(), id: poster.docs[0].id }
 
             this.setState({
                 poster,
@@ -81,9 +74,6 @@ export default class CustomizePoster extends React.Component {
                     selectedImageSrc: e.target.result
                 })
                 this.hiddenBtn.click()
-                // setTimeout(() => {
-                //     this.generateImagePreview()
-                // }, 500)
             };
 
             reader.readAsDataURL(input.files[0]);
@@ -229,7 +219,6 @@ export default class CustomizePoster extends React.Component {
                                 </form>
 
                                 <button className="hide" onClick={this.generateImagePreview} ref={(ref) => { this.hiddenBtn = ref; }}>
-
                                 </button>
 
                             </div>
