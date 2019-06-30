@@ -32,9 +32,9 @@ export default class ListPosters extends React.Component {
 
     componentDidMount () {
         let { firebase } = this.context;
-        FirebaseUtils.mountAuthStateListener(firebase, this)
-
-        this.loadPosters();
+        FirebaseUtils.mountAuthStateListener(firebase, this, {
+            onSignedIn: () => this.loadPosters()
+        })
     }
     
     componentWillUnmount () {
@@ -99,7 +99,6 @@ export default class ListPosters extends React.Component {
     }
 
     copyLink = (id) => {
-        // window.x = this.state.posters
         let [ { shortCode } ] = this.state.posters.filter((poster) => poster.id == id);
         
         console.log("Short Code", shortCode);
@@ -167,7 +166,7 @@ export default class ListPosters extends React.Component {
                     <div className="card-action">
                         <div className="row remove-bottom-padding">
                             <div className="col s12">
-                                <button onClick={this.onClickCopyLink} className="another-btn btn left blue" id={`copy-${id}`}>
+                                <button onClick={this.onClickCopyLink} className="another-btn btn left blue" id={id}>
                                     Copy Share Link
                                     <i className="material-icons left small">link</i>
                                 </button>
@@ -176,7 +175,7 @@ export default class ListPosters extends React.Component {
                                     <i className="material-icons left small">delete</i>
                                 </button>
                                 <Link to={`/p/${shortCode}/`} className="another-btn btn left blue" id={`open-${id}`}>
-                                    Open 
+                                    Open
                                     <i className="material-icons left small">open_in_new</i>
                                 </Link>
                             </div>

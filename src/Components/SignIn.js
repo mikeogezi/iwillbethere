@@ -22,6 +22,7 @@ export default class SignIn extends React.Component {
                         const uiConfig = {
                             // Popup signin flow rather than redirect flow.
                             signInFlow: 'popup',
+                            'credentialHelper': 'none',
                             // Redirect to /signedIn after sign in is successful. Alternatively you can provide a callbacks.signInSuccess function.
                             // signInSuccessUrl: '/app',
                             // We will display Google and Facebook as auth providers.
@@ -36,7 +37,7 @@ export default class SignIn extends React.Component {
                                 signInSuccessWithAuthResult: () => {
                                     setTimeout(() => {
                                         this.props.history.push("/app/");
-                                    }, 500)
+                                    }, 100)
                                     return false;
                                 }
                             }

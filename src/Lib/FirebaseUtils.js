@@ -96,11 +96,15 @@ export default class FirebaseUtils {
         }
     }
 
-    static mountAuthStateListener (firebase, that) {
+    static mountAuthStateListener (firebase, that, opts) {
+        opts = opts || {}
         that.unregisterAuthObserver = firebase.auth()
             .onAuthStateChanged((user) => {
                 if (!user) {
                     that.props.history.push("/sign-in/");
+                }
+                else if (opts.onSignedIn) {
+                    opts.onSignedIn();
                 }
             });
     }
